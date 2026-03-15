@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Poisson Betting Calculator</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .container { max-width: 600px; margin: auto; }
+        .form-group { margin-bottom: 15px; }
+        label { display: inline-block; width: 200px; }
+        input { width: 150px; padding: 5px; }
+        button { padding: 10px 20px; font-size: 16px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        .error { color: red; margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Poisson Scoreline Probability Calculator</h2>
+        <form id="calcForm">
+            <h3>Home Team</h3>
+            <div class="form-group">
+                <label>Home Avg goals scored:</label>
+                <input type="number" step="any" id="homeAttack" required>
+            </div>
+            <div class="form-group">
+                <label>Home Avg goals conceded:</label>
+                <input type="number" step="any" id="homeDefence" required>
+            </div>
+            <div class="form-group">
+                <label>Home Form Factor:</label>
+                <input type="number" step="any" id="homeForm" required>
+            </div>
+            <h3>Away Team</h3>
+            <div class="form-group">
+                <label>Away Avg goals scored:</label>
+                <input type="number" step="any" id="awayAttack" required>
+            </div>
+            <div class="form-group">
+                <label>Away Avg goals conceded:</label>
+                <input type="number" step="any" id="awayDefence" required>
+            </div>
+            <div class="form-group">
+                <label>Away Form Factor:</label>
+                <input type="number" step="any" id="awayForm" required>
+            </div>
+            <div class="form-group">
+                <label>League Average:</label>
+                <input type="number" step="any" id="leagueAvg" required>
+            </div>
+            <button type="submit">Calculate</button>
+        </form>
+
+        <div id="results">
+            <h3>Probabilities (sorted descending)</h3>
+            <table id="resultTable">
+                <thead>
+                    <tr><th>Scoreline</th><th>Probability (%)</th></tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+        <div id="error" class="error"></div>
+    </div>
+
+    <script>
+        document.getElementById('calcForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const errorDiv = document.getElementById('error');
+            errorDiv.innerHTML = '';
+
+            // Gather input values
+            const data = {
+                homeAttack: parseFloat(document.getElementById('homeAttack').value),
+                homeDefence: parseFloat(document.getElementById('homeDefence').value),
+                homeForm: parseFloat(document.getElementById('homeForm').value),
+                awayAttack: parseFloat(document.getElementById('awayAttack').value),
+                awayDefence: parseFloat(document.getElementById('awayDefence').value),
+                awayForm: parseFloat(document.getElementById('awayForm').value),
+                leagueAvg: parseFloat(document.getElementById('leagueAvg').value)
+            };
+
+            // Validate numbers
+            for (let key in data) {
+                if (isNaN(data[key])) {
+                    errorDiv.innerHTML = 'Please fill all fields with valid numbers.';
+                    return;
+                }
+            }
+
+            try {
+                const response = await fetch('/calculate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const results = await response.json();
+
+                // Populate table
+                const tbody = document.querySelector('#resultTable tbody');
+                tbody.innerHTML = '';
+                results.forEach(item => {
+                    const row = tbody.insertRow();
+                    row.insertCell().textContent = item.scoreline;
+                    row.insertCell().textContent = item.probability.toFixed(2) + '%';
+                });
+            } catch (err) {
+                errorDiv.innerHTML = 'Error communicating with server.';
+            }
+        });
+    </script>
+</body>
+</html>
