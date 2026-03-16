@@ -34,6 +34,11 @@
                 <label>Home Form Factor:</label>
                 <input type="number" step="any" id="homeForm" required>
             </div>
+            <div class="form-group">
+                <label>Home League Average:</label>
+                <input type="number" step="any" id="homeLeagueAvg" required>
+            </div>
+
             <h3>Away Team</h3>
             <div class="form-group">
                 <label>Away Avg goals scored:</label>
@@ -48,9 +53,10 @@
                 <input type="number" step="any" id="awayForm" required>
             </div>
             <div class="form-group">
-                <label>League Average:</label>
-                <input type="number" step="any" id="leagueAvg" required>
+                <label>Away League Average:</label>
+                <input type="number" step="any" id="awayLeagueAvg" required>
             </div>
+
             <button type="submit">Calculate</button>
         </form>
 
@@ -72,15 +78,17 @@
             const errorDiv = document.getElementById('error');
             errorDiv.innerHTML = '';
 
-            // Gather input values
+            // Gather input values (now with separate league averages)
             const data = {
                 homeAttack: parseFloat(document.getElementById('homeAttack').value),
                 homeDefence: parseFloat(document.getElementById('homeDefence').value),
                 homeForm: parseFloat(document.getElementById('homeForm').value),
+                homeLeagueAvg: parseFloat(document.getElementById('homeLeagueAvg').value),
+
                 awayAttack: parseFloat(document.getElementById('awayAttack').value),
                 awayDefence: parseFloat(document.getElementById('awayDefence').value),
                 awayForm: parseFloat(document.getElementById('awayForm').value),
-                leagueAvg: parseFloat(document.getElementById('leagueAvg').value)
+                awayLeagueAvg: parseFloat(document.getElementById('awayLeagueAvg').value)
             };
 
             // Validate numbers

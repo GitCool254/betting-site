@@ -17,24 +17,25 @@ def calculate():
     data = request.get_json()
 
     # Extract inputs (convert to float)
-    home_avg_scored = float(data['homeAttack'])      # now raw avg goals scored
+    home_avg_scored = float(data['homeAttack'])      # raw avg goals scored
     home_avg_conceded = float(data['homeDefence'])   # raw avg goals conceded
     home_form = float(data['homeForm'])
-    league_avg = float(data['leagueAvg'])
+    home_league_avg = float(data['homeLeagueAvg'])   # NEW: Home League Average
 
     away_avg_scored = float(data['awayAttack'])      # raw avg goals scored
     away_avg_conceded = float(data['awayDefence'])   # raw avg goals conceded
     away_form = float(data['awayForm'])
+    away_league_avg = float(data['awayLeagueAvg'])   # NEW: Away League Average
 
-    # --- New: compute strengths from raw averages ---
-    home_attack_strength = home_avg_scored / league_avg
-    home_defence_strength = home_avg_conceded / league_avg
-    away_attack_strength = away_avg_scored / league_avg
-    away_defence_strength = away_avg_conceded / league_avg
+    # --- Compute strengths using respective league averages ---
+    home_attack_strength = home_avg_scored / home_league_avg
+    home_defence_strength = home_avg_conceded / home_league_avg
+    away_attack_strength = away_avg_scored / away_league_avg
+    away_defence_strength = away_avg_conceded / away_league_avg
 
-    # Step 1: Expected goals (formula unchanged)
-    home_xg = home_attack_strength * away_defence_strength * league_avg * home_form
-    away_xg = away_attack_strength * home_defence_strength * league_avg * away_form
+    # Step 1: Expected goals (formula unchanged, using corresponding league averages)
+    home_xg = home_attack_strength * away_defence_strength * home_league_avg * home_form
+    away_xg = away_attack_strength * home_defence_strength * away_league_avg * away_form
 
     # Step 2: Poisson probabilities for 0..4 goals
     max_goals = 4
