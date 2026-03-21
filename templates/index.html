@@ -6,15 +6,30 @@
     <title>Poisson Betting Calculator</title>
     <style>
         body { font-family: Arial, sans-serif; margin: 20px; }
-        .container { max-width: 600px; margin: auto; }
+        .container { max-width: 800px; margin: auto; }
         .form-group { margin-bottom: 15px; }
         label { display: inline-block; width: 200px; }
         input { width: 150px; padding: 5px; }
-        button { padding: 10px 20px; font-size: 16px; }
+        button { padding: 8px 16px; margin: 5px; cursor: pointer; }
         table { width: 100%; border-collapse: collapse; margin-top: 20px; }
         th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
         th { background-color: #f2f2f2; }
         .error { color: red; margin-top: 10px; }
+        .prob-section {
+            margin-top: 20px;
+            border-top: 1px solid #ccc;
+            padding-top: 15px;
+        }
+        .prob-buttons {
+            margin-bottom: 10px;
+        }
+        .prob-result {
+            background: #f9f9f9;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
@@ -69,16 +84,33 @@
                 <tbody></tbody>
             </table>
         </div>
+
+        <div class="prob-section">
+            <h3>Additional Betting Markets</h3>
+            <div class="prob-buttons">
+                <button id="btnHomeWin">Home Win Prob</button>
+                <button id="btnAwayWin">Away Win Prob</button>
+                <button id="btnBTTS">BTTS</button>
+                <button id="btnUnder">Under Score</button>
+                <button id="btnOver">Over Score</button>
+            </div>
+            <div id="probResult" class="prob-result">
+                Click a button to see probability.
+            </div>
+        </div>
+
         <div id="error" class="error"></div>
     </div>
 
     <script>
+        let latestData = null;  // store the latest response data
+
         document.getElementById('calcForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             const errorDiv = document.getElementById('error');
             errorDiv.innerHTML = '';
 
-            // Gather input values (now with separate league averages)
+            // Gather input values
             const data = {
                 homeAttack: parseFloat(document.getElementById('homeAttack').value),
                 homeDefence: parseFloat(document.getElementById('homeDefence').value),
@@ -105,18 +137,76 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(data)
                 });
-                const results = await response.json();
+                const result = await response.json();
 
-                // Populate table
+                // Store the full response for later use by buttons
+                latestData = result;
+
+                // Populate scoreline table
                 const tbody = document.querySelector('#resultTable tbody');
                 tbody.innerHTML = '';
-                results.forEach(item => {
+                result.results.forEach(item => {
                     const row = tbody.insertRow();
                     row.insertCell().textContent = item.scoreline;
                     row.insertCell().textContent = item.probability.toFixed(2) + '%';
                 });
+
+                // Clear previous probability display
+                document.getElementById('probResult').innerHTML = 'Click a button to see probability.';
             } catch (err) {
                 errorDiv.innerHTML = 'Error communicating with server.';
+            }
+        });
+
+        // Button handlers
+        document.getElementById('btnHomeWin').addEventListener('click', function() {
+            if (latestData && latestData.home_win !== undefined) {
+                document.getElementById('probResult').innerHTML = `Home Win Probability: ${latestData.home_win}%`;
+            } else {
+                document.getElementById('probResult').innerHTML = 'Please click "Calculate" first.';
+            }
+        });
+
+        document.getElementById('btnAwayWin').addEventListener('click', function() {
+            if (latestData && latestData.away_win !== undefined) {
+                document.getElementById('probResult').innerHTML = `Away Win Probability: ${latestData.away_win}%`;
+            } else {
+                document.getElementById('probResult').innerHTML = 'Please click "Calculate" first.';
+            }
+        });
+
+        document.getElementById('btnBTTS').addEventListener('click', function() {
+            if (latestData && latestData.btts !== undefined) {
+                document.getElementById('probResult').innerHTML = `Both Teams to Score (BTTS): ${latestData.btts}%`;
+            } else {
+                document.getElementById('probResult').innerHTML = 'Please click "Calculate" first.';
+            }
+        });
+
+        document.getElementById('btnUnder').addEventListener('click', function() {
+            if (latestData && latestData.under_05 !== undefined) {
+                const underText = `
+                    Under 0.5 goals: ${latestData.under_05}%<br>
+                    Under 1.5 goals: ${latestData.under_15}%<br>
+                    Under 2.5 goals: ${latestData.under_25}%<br>
+                    Under 3.5 goals: ${latestData.under_35}%
+                `;
+                document.getElementById('probResult').innerHTML = underText;
+            } else {
+                document.getElementById('probResult').innerHTML = 'Please click "Calculate" first.';
+            }
+        });
+
+        document.getElementById('btnOver').addEventListener('click', function() {
+            if (latestData && latestData.over_15 !== undefined) {
+                const overText = `
+                    Over 1.5 goals: ${latestData.over_15}%<br>
+                    Over 2.5 goals: ${latestData.over_25}%<br>
+                    Over 3.5 goals: ${latestData.over_35}%
+                `;
+                document.getElementById('probResult').innerHTML = overText;
+            } else {
+                document.getElementById('probResult').innerHTML = 'Please click "Calculate" first.';
             }
         });
     </script>
